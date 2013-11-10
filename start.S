@@ -2,6 +2,8 @@
 .globl _start
         
 _start:
+        mov      sp, #0x8000
+        
         // zero the BSS
         mov     r5, #0
         mov     r6, #0
@@ -12,13 +14,11 @@ _start:
         ldr     r9, =_bss_end
         b       zcmp
 zstart:
-        stm     r4!, { r5,r6,r7,r8 }
+        stm     r4!, { r5-r8 }
         cmp     r4, r9
 zcmp:   
         blo     zstart
-        mov     r0, #'S'
-        blx     uart_putc
-
+        
         blx     main
 sleep:  
         wfe
