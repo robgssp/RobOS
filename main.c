@@ -5,7 +5,8 @@
 #include "moar.h"
 #include "base64.h"
 
-void uart_putptr(uint32_t ptr) {
+void uart_putptr(uint8_t *ptr1) {
+        uint32_t ptr = (uint32_t) ptr1;
         uart_puts("0x");
         for (int32_t i = 7; i >= 0; --i) {
                 int j = (ptr & (0xf << (4*i))) >> (4*i);
@@ -34,7 +35,7 @@ void uart_putn(uint32_t n) {
 
 int quit() { return 1; }
 int tits() {
-        uart_puts("tits\r\n");
+        uart_puts("broke\r\n");
         return 0;
 }
 
@@ -59,17 +60,17 @@ int parrot() {
 }
 
 uint8_t *b64thing;
-uint8_t *rwthing = "test.\n";
 // read in an executable, then run it
 int store() {
         b64thing = moar(0);
-        while ((*moar(1) = uart_getc()) != '\n');
-        rwthing = base64decode(b64thing, moar(0)-b64thing);
+        while ((*moar(1) = uart_getc()) != '\r') uart_putc(*moar(0));
+        base64decode(b64thing, moar(0)-b64thing);
         return 0;
 }
 
 int read() {
-        uart_puts(rwthing);
+        uart_puts(b64thing);
+        mat(b64thing);
         return 0;
 }
 

@@ -1,4 +1,5 @@
 #include "base64.h"
+#include "uart.h"
 #include "moar.h"
 
 int base64dchar(int ch) {
@@ -17,18 +18,18 @@ int base64dchar(int ch) {
         }
 }
 
-char *base64decode(char *in, int inlen) {
+/* warning: in-place conversion */
+void base64decode(char *in, int inlen) {
         int outlen = (inlen * 3) / 4;
-        char *j = moar(0);
+        char *out = in;
         for (int i = 0; i < inlen; i += 4) {
-                uint32_t b = (base64dchar(in[i])) &
-                        (base64dchar(in[i+1]) << 6) &
-                        (base64dchar(in[i+2]) << 12) &
-                        (base64dchar(in[i+3]) << 18);
-                *moar(1) = b;
-                *moar(1) = b >> 8;
-                *moar(1) = b >> 16;
+                uint32_t b = (base64dchar(in[i]) << 18) |
+                        (base64dchar(in[i+1]) << 12) |
+                        (base64dchar(in[i+2]) << 6) |
+                        (base64dchar(in[i+3]));
+                *out++ = b >> 16;
+                *out++ = b >> 8;
+                *out++ = b;
         }
-        *moar(1) = '\0';
-        return j;
+        *out++ = '\0';
 }

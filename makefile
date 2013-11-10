@@ -6,16 +6,14 @@ SOURCES_C   := $(wildcard *.c)
 OBJS := $(patsubst %.S,%.o,$(SOURCES_ASM))
 OBJS += $(patsubst %.c,%.o,$(SOURCES_C))
 
-ASFLAGS := -D__ASSEMBLY__
-CFLAGS  := -ffreestanding -std=gnu99
-# CFLAGS  += -O2 -fpic -pedantic -pedantic-errors -nostdlib
-# CFLAGS  += -nostartfiles -ffreestanding -nodefaultlibs
-# CFLAGS  += -fno-builtin -fomit-frame-pointer -mcpu=arm1176jzf-s
+BASEFLAGS := -mcpu=arm1176jzf-s -I.
+ASFLAGS   := $(BASEFLAGS) -D__ASSEMBLY__
+CFLAGS    := $(BASEFLAGS) -ffreestanding -std=gnu99 -Wno-implicit-int
 
-.PHONY: clean
+.PHONY: clean emu
 
 kernel.elf: $(OBJS) link-arm-eabi.ld
-	$(ARMGNU)-ld $(OBJS) -Tlink-arm-eabi.ld -o $@
+	$(ARMGNU)-ld -static $(OBJS) -Tlink-arm-eabi.ld -o $@
 
 .c.o:
 	$(ARMGNU)-gcc $(CFLAGS) -c $< -o $@
@@ -25,3 +23,6 @@ kernel.elf: $(OBJS) link-arm-eabi.ld
 
 clean:
 	rm kernel.elf *.o || true
+
+emu: kernel.elf
+	 ~/build/qemu/qemu-rpi-build/arm-softmmu/qemu-system-arm -kernel kernel.elf -cpu arm1176 -m 256 -M raspi -nographic -monitor none -serial stdio
